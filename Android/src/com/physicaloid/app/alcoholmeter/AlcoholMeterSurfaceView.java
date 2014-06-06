@@ -9,7 +9,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -19,9 +18,6 @@ public class AlcoholMeterSurfaceView extends SurfaceView implements Runnable, Su
     private static final float DEFAULT_FONT_SIZE = 30.0F;
     private static final float UP_DOWN_SPEED = 0.1F;
     private static final float FONT_SCALE = 0.8F;
-
-    private int mScreenWidthDot;
-    private int mScreenHeightDot;
 
     private SurfaceHolder mSurfaceHolder;
     private Thread mThread;
@@ -81,8 +77,6 @@ public class AlcoholMeterSurfaceView extends SurfaceView implements Runnable, Su
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
             int height) {
-        mScreenWidthDot = width;
-        mScreenHeightDot = height;
     }
 
     @Override
@@ -93,7 +87,6 @@ public class AlcoholMeterSurfaceView extends SurfaceView implements Runnable, Su
     @Override
     public void run() {
         Canvas canvas = null;
-        Paint paint= new Paint();
         int canvasWidth;
         int canvasHeight;
 

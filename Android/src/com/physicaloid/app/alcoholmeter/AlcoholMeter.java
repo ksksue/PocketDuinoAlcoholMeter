@@ -13,7 +13,6 @@ public class AlcoholMeter {
     private int mAdcVal;
     private int mAdcZeroPoint;
     private int mPercentage;
-    private boolean mDemo = false;
 
     Physicaloid mPhysicaloid;
 

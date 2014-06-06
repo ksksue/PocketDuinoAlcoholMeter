@@ -10,11 +10,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,7 +21,6 @@ import android.view.SurfaceView;
 
 import com.physicaloid.lib.Boards;
 import com.physicaloid.lib.Physicaloid;
-import com.physicaloid.lib.usb.driver.uart.ReadLisener;
 
 public class AlcoholMeterActivity extends Activity {
     private static final String TAG = AlcoholMeterActivity.class.getSimpleName();
@@ -109,24 +106,18 @@ public class AlcoholMeterActivity extends Activity {
     }
 
     private Timer mTimer2;
-    private Handler mHandler2;
     private void openDevice() {
         if(!mPhysicaloid.isOpened()) {
             if(mAlcohol.init()) {
                 mAlcoholeMeterSV.showPercentage();
 
                 mTimer2 = new Timer();
-                mHandler2 = new Handler();
                 mTimer2.schedule( new TimerTask(){
                     @Override
                     public void run() {
-//                    mHandler2.post( new Runnable() {
-//                        public void run() {
                         if(!mDemo) {
                             mAlcoholeMeterSV.setAlcoholPercentage(mAlcohol.getPercentage());
                         }
-//                        }
-//                    });
                     }
                 }, 100, 1000);
             } else {
@@ -145,36 +136,6 @@ public class AlcoholMeterActivity extends Activity {
         openDevice();
         return true;
     }
-
-    final static byte STX = 's';
-    final static byte ETX = '\r';
-
-    private int decodePacket(byte[] buf) {
-        boolean existStx = false;
-        int result = 0;
-
-        for(int i=0; i<buf.length; i++) {
-            Log.d(TAG, String.format("%02x ", buf[i]));
-            if(!existStx) {
-                if(buf[i] == STX) {
-                    existStx = true;
-                }
-            } else {
-                if(buf[i] == ETX) {
-                    return result;
-                } else {
-                    if('0' <= buf[i] && buf[i] <= '9') {
-                        result = result*10 + (buf[i]-'0');
-                    } else {
-                        return -1;
-                    }
-                }
-            }
-        }
-
-        return -1;
-    }
-
 
     // デモ用のランダムパーセンテージ表示
     Timer mTimer;
@@ -217,14 +178,6 @@ public class AlcoholMeterActivity extends Activity {
             });
         }
     }, 1000, 2000);
-    }
-
-    private String toHexStr(byte[] b, int length) {
-        String str="";
-        for(int i=0; i<length; i++) {
-            str += String.format("%02x ", b[i]);
-        }
-        return str;
     }
 
     //****************************************************************
