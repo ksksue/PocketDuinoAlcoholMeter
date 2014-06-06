@@ -6,31 +6,23 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.SurfaceView;
 
-import com.physicaloid.lib.Boards;
-import com.physicaloid.lib.Physicaloid;
+import com.physicaloid.lib.sensor.AlcoholMeter;
+import com.physicaloid.lib.sensor.PDuino;
 
 public class AlcoholMeterActivity extends Activity {
     private static final String TAG = AlcoholMeterActivity.class.getSimpleName();
 
-    SurfaceView mSvBeer;
     AlcoholMeterSurfaceView mAlcoholeMeterSV;
+    SurfaceView mSvBeer;
 
-    Physicaloid mPhysicaloid;
+    PDuino mSensor;
     AlcoholMeter mAlcohol;
-
     private boolean mDemo = false;
 
     @Override
@@ -41,22 +33,17 @@ public class AlcoholMeterActivity extends Activity {
         mSvBeer = (SurfaceView) findViewById(R.id.svBeer);
         mAlcoholeMeterSV = new AlcoholMeterSurfaceView(this, mSvBeer, "Please tap to start!");
 
-        mPhysicaloid = new Physicaloid(getApplicationContext());
-//        mPhysicaloid = new Physicaloid(this);
-        mAlcohol = new AlcoholMeter(mPhysicaloid);
-        mAlcohol.loadZeroPoint(getApplicationContext());
+        mSensor = new PDuino(getApplicationContext());
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        registerReceiver(mUsbReceiver, filter);
+    	mAlcohol = new AlcoholMeter(mSensor);
+    	mAlcohol.loadZeroPoint(getApplicationContext());
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        closeDevice();
-        unregisterReceiver(mUsbReceiver);
+        mSensor.onDestroy(getApplicationContext());
     }
 
     private static final int MENU_SET_ZERO_POINT = 0;
@@ -96,45 +83,6 @@ public class AlcoholMeterActivity extends Activity {
     }
 
     private void upload() {
-        try {
-            mPhysicaloid.upload(Boards.POCKETDUINO, getResources().getAssets().open("AlcoholSensor.hex"), null);
-        } catch (RuntimeException e) {
-            Log.e(TAG, e.toString());
-        } catch (IOException e) {
-            Log.e(TAG, e.toString());
-        }
-    }
-
-    private Timer mTimer2;
-    private void openDevice() {
-        if(!mPhysicaloid.isOpened()) {
-            if(mAlcohol.init()) {
-                mAlcoholeMeterSV.showPercentage();
-
-                mTimer2 = new Timer();
-                mTimer2.schedule( new TimerTask(){
-                    @Override
-                    public void run() {
-                        if(!mDemo) {
-                            mAlcoholeMeterSV.setAlcoholPercentage(mAlcohol.getPercentage());
-                        }
-                    }
-                }, 100, 1000);
-            } else {
-                mAlcoholeMeterSV.setText("Please attach PocketDuino");
-                mAlcoholeMeterSV.showText();
-            }
-        }
-    }
-
-    private void closeDevice() {
-        mPhysicaloid.close();
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        openDevice();
-        return true;
     }
 
     // デモ用のランダムパーセンテージ表示
@@ -180,27 +128,4 @@ public class AlcoholMeterActivity extends Activity {
     }, 1000, 2000);
     }
 
-    //****************************************************************
-    // get intent when a USB device attached
-    protected void onNewIntent(Intent intent) {
-        String action = intent.getAction();
-
-        if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
-            openDevice();
-        }
-    };
-    //****************************************************************
-
-    //****************************************************************
-    // get intent when a USB device detached
-    BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-                closeDevice();
-            }
-        }
-    };
-    //****************************************************************
 }

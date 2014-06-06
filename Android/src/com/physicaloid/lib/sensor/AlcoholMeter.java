@@ -1,4 +1,4 @@
-package com.physicaloid.app.alcoholmeter;
+package com.physicaloid.lib.sensor;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -20,8 +20,8 @@ public class AlcoholMeter {
     private static final int ALCOHOL_DIFF_ADC_VALUE = 350;
     private static final int PREFERENCE_DEF_ZERO_POINT = 600;
 
-	public AlcoholMeter(Physicaloid physicaloid) {
-        mPhysicaloid = physicaloid;
+	public AlcoholMeter(PDuino pDuino) {
+        mPhysicaloid = pDuino.getPhysicaloid();
         mAdcZeroPoint = ALCOHOL_ZERO_ADC_VALUE;
         mAdcVal = 0;
 	}
